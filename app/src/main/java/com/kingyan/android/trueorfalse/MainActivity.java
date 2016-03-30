@@ -9,15 +9,20 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private static final String INDEX_KEY = "index";
+    private static final String LIST_KEY = "list";
     private Button mTrueButton;
     private Button mFalseButton;
     private Button mNextButton;
     private Button mPrevButton;
     private Button mCheatButton;
     private TextView mQuetionText;
+    private boolean mIsCheat;
     private int mCurrentIndex = 0;
     private Question[] questions = new Question[]{
             new Question(R.string.question_oceans, true),
@@ -26,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
             new Question(R.string.question_americas, true),
             new Question(R.string.question_asia, true)
     };
+    private ArrayList<HashMap<String, Object>> list = new ArrayList();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 mCurrentIndex = (++mCurrentIndex) % questions.length;
                 updateQuestion();
+                mIsCheat = false;
             }
         });
 
@@ -49,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
                 mCurrentIndex = (++mCurrentIndex) % questions.length;
                 Log.d(TAG, String.valueOf(mCurrentIndex));
                 updateQuestion();
+                mIsCheat = false;
             }
         });
 
@@ -60,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
                 mCurrentIndex = (--mCurrentIndex + questions.length) % questions.length;
                 Log.d(TAG, String.valueOf(mCurrentIndex));
                 updateQuestion();
+                mIsCheat = false;
             }
         });
 
@@ -70,15 +79,15 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainActivity.this, CheatActivity.class);
                 boolean mTrueQuestion = questions[mCurrentIndex].isTrueQuestion();
                 intent.putExtra(CheatActivity.EXTRA_ANSWER_IS_TRUE, mTrueQuestion);
-                startActivity(intent);
+                startActivityForResult(intent, 0);
             }
         });
 
         if (savedInstanceState != null) {
+            Log.d(TAG, savedInstanceState.toString());
             mCurrentIndex = savedInstanceState.getInt(INDEX_KEY, 0);
+            mIsCheat = savedInstanceState.getBoolean(CheatActivity.EXTRA_IS_CHEAT, false);
         }
-
-        updateQuestion();
 
         mTrueButton = (Button) findViewById(R.id.true_button);
         mTrueButton.setOnClickListener(new View.OnClickListener() {
@@ -95,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
                 answerQuestion(false);
             }
         });
+        updateQuestion();
     }
 
     private void updateQuestion() {
@@ -105,12 +115,34 @@ public class MainActivity extends AppCompatActivity {
     private void answerQuestion(boolean userPress) {
         boolean answerIsTrue = questions[mCurrentIndex].isTrueQuestion();
         int responseResId;
-        if (answerIsTrue == userPress) {
-            responseResId = R.string.correct_toast;
+        Log.d(TAG, "isCheat: " + mIsCheat);
+        if (list.isEmpty()) {
+            if (mIsCheat) {
+                Toast.makeText(this, R.string.judgment_toast, Toast.LENGTH_SHORT).show();
+            } else {
+                if (answerIsTrue == userPress) {
+                    responseResId = R.string.correct_toast;
+                } else {
+                    responseResId = R.string.incorrect_toast;
+                }
+                Toast.makeText(this, responseResId, Toast.LENGTH_SHORT).show();
+            }
         } else {
-            responseResId = R.string.incorrect_toast;
+            for (int i = 0; i < list.size(); i++) {
+                if (mCurrentIndex == (Integer) list.get(i).get("index")) {
+                    Toast.makeText(this, R.string.judgment_toast, Toast.LENGTH_SHORT).show();
+                    continue;
+                } else {
+                    if (answerIsTrue == userPress) {
+                        responseResId = R.string.correct_toast;
+                    } else {
+                        responseResId = R.string.incorrect_toast;
+                    }
+                    Toast.makeText(this, responseResId, Toast.LENGTH_SHORT).show();
+                    continue;
+                }
+            }
         }
-        Toast.makeText(this, responseResId, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -118,5 +150,22 @@ public class MainActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
         Log.d(TAG, "onSaveInstanceState called");
         outState.putInt(INDEX_KEY, mCurrentIndex);
+        outState.putBoolean(CheatActivity.EXTRA_IS_CHEAT, mIsCheat);
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d(TAG, "onActivityResult called");
+        if (data == null) {
+            return;
+        }
+        mIsCheat = data.getBooleanExtra(CheatActivity.EXTRA_ANSWER_SHOW, false);
+        if (mIsCheat) {
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("index", mCurrentIndex);
+            map.put("isCheat", mIsCheat);
+            list.add(map);
+        }
+    }
+
 }
