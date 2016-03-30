@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
     private Button mNextButton;
     private Button mPrevButton;
     private Button mCheatButton;
-    private TextView mQuetionText;
+    private TextView mQuestionText;
     private boolean mIsCheat;
     private int mCurrentIndex = 0;
     private Question[] questions = new Question[]{
@@ -39,8 +39,8 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "onCreate(Bundle savedInstanceState) called");
         setContentView(R.layout.activity_main);
 
-        mQuetionText = (TextView) findViewById(R.id.question_text_view);
-        mQuetionText.setOnClickListener(new View.OnClickListener() {
+        mQuestionText = (TextView) findViewById(R.id.question_text_view);
+        mQuestionText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mCurrentIndex = (++mCurrentIndex) % questions.length;
@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateQuestion() {
         int question = questions[mCurrentIndex].getQuestion();
-        mQuetionText.setText(question);
+        mQuestionText.setText(question);
     }
 
     private void answerQuestion(boolean userPress) {
