@@ -2,11 +2,14 @@ package com.kingyan.android.trueorfalse;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
+import org.w3c.dom.Text;
 
 
 public class CheatActivity extends Activity {
@@ -19,6 +22,7 @@ public class CheatActivity extends Activity {
     private Button mShowAnswer;
     private TextView mAskAnswerTextView;
     private boolean mIsCheat;
+    private TextView mSdkVersion;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +45,10 @@ public class CheatActivity extends Activity {
                 setAnswerShownResult(mIsCheat);
             }
         });
+
+        mSdkVersion = (TextView) findViewById(R.id.sdk_version);
+        int sdkVersion = Build.VERSION.SDK_INT;
+        mSdkVersion.setText("API LEVEL: "+sdkVersion);
 
         if (savedInstanceState != null) {
             mAnswerIsTrue = savedInstanceState.getBoolean(EXTRA_ANSWER_SHOW, false);
